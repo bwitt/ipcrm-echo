@@ -1,0 +1,43 @@
+---
+name: CI
+
+on:
+  pull_request: {}
+  push:
+    branches:
+      - master
+
+permissions:
+  contents: read
+
+jobs:
+  unit:
+    name: Unit
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+      - run: bundle exec rake spec
+
+  acceptance:
+    name: Acceptance (${{ matrix.setfile }}, openvox8)
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        setfile:
+          - ubuntu2204-64
+          - ubuntu2404-64
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+      - run: bundle exec rake beaker
+        env:
+          BEAKER_PUPPET_COLLECTION: openvox8
+          BEAKER_SETFILE: ${{ matrix.setfile }}
